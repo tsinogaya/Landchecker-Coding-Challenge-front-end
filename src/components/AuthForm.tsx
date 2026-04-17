@@ -25,28 +25,38 @@ export function AuthForm() {
   };
 
   return (
-    <form className="auth-card" onSubmit={onSubmit}>
-      <h2>Landchecker</h2>
-      <p>{mode === 'login' ? 'Sign in to your account' : 'Create a new account'}</p>
-      <label>
-        Email
-        <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
-      </label>
-      <label>
-        Password
-        <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" minLength={8} required />
-      </label>
-      {error && <p className="error">{error}</p>}
-      <button disabled={loading} type="submit">
-        {loading ? 'Please wait...' : mode === 'login' ? 'Login' : 'Register'}
-      </button>
-      <button
-        type="button"
-        className="secondary"
-        onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-      >
-        {mode === 'login' ? 'Need an account? Register' : 'Already have an account? Login'}
-      </button>
-    </form>
+    <section className="auth-shell">
+      <aside className="auth-hero">
+        <p className="auth-kicker">Landchecker</p>
+        <h2>Track homes worth watching.</h2>
+        <p>
+          Search properties fast, apply smart filters, and keep your favorites in one watchlist with live updates.
+        </p>
+      </aside>
+
+      <form className="auth-card" onSubmit={onSubmit}>
+        <h3>{mode === 'login' ? 'Welcome back' : 'Create your account'}</h3>
+        <p className="auth-subtext">{mode === 'login' ? 'Sign in to continue' : 'Start building your watchlist'}</p>
+        <label>
+          Email
+          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
+        </label>
+        <label>
+          Password
+          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" minLength={8} required />
+        </label>
+        {error && <p className="error">{error}</p>}
+        <button disabled={loading} type="submit">
+          {loading ? 'Please wait...' : mode === 'login' ? 'Login' : 'Register'}
+        </button>
+        <button
+          type="button"
+          className="secondary"
+          onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+        >
+          {mode === 'login' ? 'Need an account? Register' : 'Already have an account? Login'}
+        </button>
+      </form>
+    </section>
   );
 }

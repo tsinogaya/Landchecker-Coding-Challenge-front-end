@@ -26,23 +26,56 @@ export function PropertySearchPage() {
     return () => observer.disconnect();
   }, [loadNext]);
 
-  const list = useMemo(() => items, [items]);
+  const { favorites, others } = useMemo(() => {
+    const favoriteItems = items.filter((property) => watchlistIds.has(property.id));
+    const otherItems = items.filter((property) => !watchlistIds.has(property.id));
+    return { favorites: favoriteItems, others: otherItems };
+  }, [items, watchlistIds]);
 
   return (
     <section>
       <SearchFilters onApply={setFilters} />
       {error && <p className="error">{error}</p>}
-      <div className="grid">
-        {list.map((property) => (
-          <PropertyCard
-            key={property.id}
-            property={property}
-            watched={watchlistIds.has(property.id)}
-            livePriceCents={updates[property.id]?.price_cents}
-            liveStatus={updates[property.id]?.status}
-            onToggleWatch={(id) => void toggle(id)}
-          />
-        ))}
+      <div className="dashboard-section">
+        <div className="section-header">
+          <h2>Favorites First</h2>
+          <span>{favorites.length} saved</span>
+        </div>
+        {favorites.length === 0 ? (
+          <p className="empty-state">Save a property to see it pinned at the top of your dashboard.</p>
+        ) : (
+          <div className="grid">
+            {favorites.map((property) => (
+              <PropertyCard
+                key={property.id}
+                property={property}
+                watched={true}
+                livePriceCents={updates[property.id]?.price_cents}
+                liveStatus={updates[property.id]?.status}
+                onToggleWatch={(id) => void toggle(id)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="dashboard-section">
+        <div className="section-header">
+          <h2>Other Listings</h2>
+          <span>{others.length} shown</span>
+        </div>
+        <div className="grid">
+          {others.map((property) => (
+            <PropertyCard
+              key={property.id}
+              property={property}
+              watched={false}
+              livePriceCents={updates[property.id]?.price_cents}
+              liveStatus={updates[property.id]?.status}
+              onToggleWatch={(id) => void toggle(id)}
+            />
+          ))}
+        </div>
       </div>
       {loading && <p>Loading properties...</p>}
       {!hasMore && !loading && <p>End of results.</p>}
