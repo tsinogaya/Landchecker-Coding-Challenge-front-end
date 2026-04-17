@@ -18,21 +18,29 @@ export function WatchlistProvider({ children }: { children: React.ReactNode }) {
   const [updates, setUpdates] = useState<Record<number, { price_cents: number; status: string }>>({});
   const [loading, setLoading] = useState(false);
 
+  const loadWatchlist = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await watchlistApi.fetchWatchlist();
+      setWatchlistIds(new Set(response.data.map((property) => property.id)));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setWatchlistIds(new Set<number>());
+      setUpdates({});
+      setLoading(false);
+      return;
+    }
 
     let alive = true;
-    setLoading(true);
-
-    watchlistApi
-      .fetchWatchlist()
-      .then((response) => {
-        if (!alive) return;
-        setWatchlistIds(new Set(response.data.map((property) => property.id)));
-      })
-      .finally(() => {
-        if (alive) setLoading(false);
-      });
+    loadWatchlist().catch(() => {
+      if (!alive) return;
+      setWatchlistIds(new Set<number>());
+    });
 
     const cableUrl = `${import.meta.env.VITE_CABLE_URL || 'ws://localhost:3000/cable'}?token=${token}`;
     const consumer = createConsumer(cableUrl);
@@ -58,7 +66,7 @@ export function WatchlistProvider({ children }: { children: React.ReactNode }) {
       subscription.unsubscribe();
       consumer.disconnect();
     };
-  }, [token]);
+  }, [token, loadWatchlist]);
 
   const toggle = useCallback(
     async (propertyId: number) => {
@@ -78,8 +86,11 @@ export function WatchlistProvider({ children }: { children: React.ReactNode }) {
           return next;
         });
       }
+
+      // Reconcile with backend state to avoid stale favorites after auth/session transitions.
+      await loadWatchlist();
     },
-    [watchlistIds]
+    [watchlistIds, loadWatchlist]
   );
 
   const value = useMemo(() => ({ watchlistIds, loading, toggle, updates }), [watchlistIds, loading, toggle, updates]);
